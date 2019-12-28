@@ -43,7 +43,7 @@ for try_num in range(1,int(config.get('eit2xmltv','retry_count'))+1):
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 188*7*1000)
-            sock.bind(('', port))
+            sock.bind((group, port))
             mreq = struct.pack("4sl", socket.inet_aton(group), socket.INADDR_ANY)
             sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
             sock.settimeout(int(config.get('eit2xmltv','socket_timeout')))
@@ -52,8 +52,11 @@ for try_num in range(1,int(config.get('eit2xmltv','retry_count'))+1):
             
             #f = open('temp-%s.ts' % group,'wb')
             while True:
-              iptv_data = sock.recv(188*7)
-             # f.write(iptv_data)
+              try:
+                iptv_data = sock.recv(188*7)
+              except:
+                break
+              #f.write(iptv_data)
               for i in range(0,7):
                   eit.load_ts_packet(iptv_data[188*i:188*i+188])
               if time.time() - last_time_eit_checked > check_eit_period:
